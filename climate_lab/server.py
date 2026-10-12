@@ -99,7 +99,7 @@ def simulate(payload: dict[str, Any]) -> dict[str, Any]:
         intensity = _finite_number(
             position.get("emissions_intensity", 0.0),
             f"portfolio[{index}].emissions_intensity",
-            maximum=100.0,
+            maximum=2.0,
         )
         sensitivity = SECTORS[sector]
         # Horizon scaling is deliberately linear and explicitly a toy assumption.
