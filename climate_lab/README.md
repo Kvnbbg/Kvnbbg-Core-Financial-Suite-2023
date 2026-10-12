@@ -41,6 +41,7 @@ NGFS scenarios are conditional pathways, not probability-weighted predictions. E
 
 - `GET /api/health`
 - `GET /api/scenarios`
+- `GET /api/data-sources` — centralized source catalog; links only, no automatic download
 - `POST /api/simulate` with JSON:
   ```json
   {
@@ -79,3 +80,34 @@ The emissions intensity is a user-supplied, unitless teaching input in this MVP,
 4. Sector-to-financial-exposure mapping with explicit coverage and missing-data policy.
 5. Comparative models, sensitivity bands, validation report and downloadable run manifest.
 6. Deploy behind managed HTTPS/authentication only after security review.
+
+
+## Provenance gate for real-data research
+
+The dashboard and `GET /api/data-sources` use `data_catalog.json` as the single source catalog. Its status explicitly says that no external dataset has been downloaded or integrated. The catalog provides official entry points and per-source checks; it does not guarantee that a linked dataset is current, licensed for every use, or directly comparable.
+
+Before using a local CSV or other snapshot in an analysis, create a separate JSON manifest with these required string fields:
+
+```json
+{
+  "dataset_id": "provider-series-or-dataset-id",
+  "source_url": "https://official.example/dataset",
+  "retrieved_at": "2026-10-12T10:00:00Z",
+  "dataset_version": "provider-release-or-version",
+  "license": "exact-license-or-review-required",
+  "units": "documented units",
+  "geography": "documented geography",
+  "variable": "provider variable identifier",
+  "sha256": "64-character-lowercase-sha256-of-local-snapshot"
+}
+```
+
+Use `provenance.validate_manifest(manifest, snapshot_path)` to validate required metadata, HTTPS source URL, timezone-aware ISO 8601 retrieval time, and the SHA-256 digest of the local file. It intentionally makes no network requests, does not invent missing metadata, and does not validate the scientific suitability of the data. Keep raw snapshots immutable and store manifests alongside them. A digest proves file identity, not source authenticity or correctness.
+
+Run all tests with:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+**Alternative methods:** use a provider-specific downloader only after reviewing its terms and API contract; for high-assurance pipelines, add a signed provenance record and immutable object storage. Do not treat either as a replacement for unit, coverage, and methodological checks.
