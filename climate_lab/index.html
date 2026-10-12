@@ -55,12 +55,7 @@
 <section class="panel" style="margin-top:1rem">
 <h2>Sources de données vérifiables pour la prochaine phase</h2>
 <p class="muted small">Les sources ci-dessous sont des portes d’entrée officielles. Cette version ne télécharge pas automatiquement leurs données; aucun chiffre externe n’est injecté silencieusement dans les simulations.</p>
-<ul class="sources">
-<li><a href="https://www.ngfs.net/ngfs-scenarios-portal/data-resources/" rel="noreferrer">NGFS — scénarios et ressources techniques</a>: trajectoires conditionnelles de transition, variables macroéconomiques et impacts physiques. Version du jeu de données à épingler à chaque import.</li>
-<li><a href="https://www.ecb.europa.eu/stats/all-key-statistics/horizontal-indicators/sustainability-indicators/html/index.en.html" rel="noreferrer">BCE — indicateurs liés au climat</a>: finance durable, émissions financées et risques physiques. La BCE distingue les statistiques officielles des indicateurs analytiques encore limités méthodologiquement.</li>
-<li><a href="https://climateknowledgeportal.worldbank.org/index.php/download-data" rel="noreferrer">Banque mondiale — Climate Change Knowledge Portal</a>: observations agrégées et projections CMIP6 par pays/région, scénario et variable.</li>
-<li><a href="https://cds.climate.copernicus.eu/en/how-to-api" rel="noreferrer">Copernicus Climate Data Store</a>: accès programmatique aux données climatiques; les conditions d’utilisation propres à chaque jeu doivent être acceptées.</li>
-</ul>
+<ul class="sources" id="sources-list"><li>Chargement du catalogue centralisé…</li></ul>
 </section>
 <section class="panel" style="margin-top:1rem">
 <h2>Limites à garder dans tout rapport</h2>
@@ -105,7 +100,47 @@ async function runSimulation(event) {
     $('error').textContent = error instanceof Error ? error.message : 'Erreur inattendue.';
   }
 }
+async function loadSourceCatalog() {
+  const list = $('sources-list');
+  try {
+    const response = await fetch('/api/data-sources');
+    if (!response.ok) throw new Error('Catalogue indisponible (' + response.status + ').');
+    const catalog = await response.json();
+    list.replaceChildren();
+    for (const source of catalog.sources || []) {
+      const item = document.createElement('li');
+      const link = document.createElement('a');
+      link.href = source.url;
+      link.rel = 'noreferrer';
+      link.textContent = source.name;
+      item.append(link, document.createTextNode(' — ' + source.intended_use + '. Statut : ' + source.data_status.replaceAll('_', ' ') + '.'));
+      if (Array.isArray(source.checks) && source.checks.length) {
+        const details = document.createElement('details');
+        const summary = document.createElement('summary');
+        summary.textContent = 'Contrôles avant import';
+        const checklist = document.createElement('ul');
+        for (const check of source.checks) {
+          const row = document.createElement('li');
+          row.textContent = check;
+          checklist.append(row);
+        }
+        details.append(summary, checklist);
+        item.append(details);
+      }
+      list.append(item);
+    }
+    if (catalog.status !== 'catalog_only_no_external_data_downloaded') {
+      $('error').textContent = 'Attention : vérifier le statut du catalogue avant d’interpréter les données.';
+    }
+  } catch (error) {
+    list.replaceChildren();
+    const item = document.createElement('li');
+    item.textContent = error instanceof Error ? error.message : 'Erreur de chargement du catalogue.';
+    list.append(item);
+  }
+}
 $('sim-form').addEventListener('submit', runSimulation);
+loadSourceCatalog();
 runSimulation({preventDefault(){}});
 </script>
 </body>
