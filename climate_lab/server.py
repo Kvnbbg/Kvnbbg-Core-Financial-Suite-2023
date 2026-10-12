@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent
+DATA_CATALOG_PATH = ROOT / "data_catalog.json"
 HOST = os.environ.get("CLIMATE_LAB_HOST", "127.0.0.1")
 PORT = int(os.environ.get("CLIMATE_LAB_PORT", "8000"))
 
@@ -157,6 +158,13 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802 - stdlib handler contract
         if self.path == "/api/health":
             self._json(200, {"status": "ok", "mode": "local research MVP", "external_data": False})
+        elif self.path == "/api/data-sources":
+            # This is a source catalog, not a claim that remote datasets were imported.
+            try:
+                catalog = json.loads(DATA_CATALOG_PATH.read_text(encoding="utf-8"))
+                self._json(200, catalog)
+            except (OSError, json.JSONDecodeError):
+                self._json(500, {"error": "Catalogue de sources indisponible ou invalide"})
         elif self.path == "/api/scenarios":
             self._json(200, {
                 "scenarios": [{"id": key, **value} for key, value in SCENARIOS.items()],
