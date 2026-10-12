@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "status": "catalog_only_no_external_data_downloaded",
+  "sources": [
+    {
+      "id": "ngfs_scenarios",
+      "name": "NGFS — scénarios climatiques",
+      "organization": "Network for Greening the Financial System",
+      "url": "https://www.ngfs.net/ngfs-scenarios-portal/data-resources/",
+      "data_status": "official_source_link_only",
+      "intended_use": "Transition and physical-risk scenario pathways",
+      "checks": [
+        "Pin scenario release and file version",
+        "Record variable, units, geography, horizon and license",
+        "Treat pathways as conditional scenarios, not probabilistic forecasts"
+      ]
+    },
+    {
+      "id": "ecb_climate_indicators",
+      "name": "BCE — indicateurs liés au climat",
+      "organization": "European Central Bank",
+      "url": "https://www.ecb.europa.eu/stats/all-key-statistics/horizontal-indicators/sustainability-indicators/html/index.en.html",
+      "data_status": "official_source_link_only",
+      "intended_use": "Climate-related financial indicators and methodology",
+      "checks": [
+        "Record series identifier and release date",
+        "Distinguish official statistics from analytical indicators",
+        "Document coverage and methodological limitations"
+      ]
+    },
+    {
+      "id": "world_bank_climate_portal",
+      "name": "Banque mondiale — Climate Change Knowledge Portal",
+      "organization": "World Bank",
+      "url": "https://climateknowledgeportal.worldbank.org/index.php/download-data",
+      "data_status": "official_source_link_only",
+      "intended_use": "Country and regional climate observations/projections",
+      "checks": [
+        "Record country or region, scenario, variable and units",
+        "Pin download date and dataset version",
+        "Document spatial and temporal coverage"
+      ]
+    },
+    {
+      "id": "copernicus_cds",
+      "name": "Copernicus — Climate Data Store",
+      "organization": "Copernicus Climate Change Service",
+      "url": "https://cds.climate.copernicus.eu/en/how-to-api",
+      "data_status": "official_source_link_only",
+      "intended_use": "Programmatic access to climate datasets",
+      "checks": [
+        "Record dataset identifier and request parameters",
+        "Review dataset-specific terms and license",
+        "Store the original response and checksum"
+      ]
+    },
+    {
+      "id": "world_bank_open_data",
+      "name": "Banque mondiale — Open Data",
+      "organization": "World Bank",
+      "url": "https://data.worldbank.org/",
+      "data_status": "official_source_link_only",
+      "intended_use": "Macro-financial context and country-level indicators",
+      "checks": [
+        "Record indicator code, country code and units",
+        "Pin observation vintage and download date",
+        "Avoid mixing incompatible frequencies without documented transformations"
+      ]
+    }
+  ]
+}
