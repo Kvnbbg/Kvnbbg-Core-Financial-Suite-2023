@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Climate Finance Research Lab</title>
+<style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#e9f0f2;background:#101a1e;--panel:#19282d;--line:#33464c;--muted:#a6b9bd;--accent:#a9e6cb;--warn:#ffd79a}
+*{box-sizing:border-box}body{margin:0}header{padding:2rem max(1rem,calc((100vw - 1100px)/2));background:#142126;border-bottom:1px solid var(--line)}main{max-width:1100px;margin:auto;padding:1.25rem}h1{font-size:clamp(1.7rem,4vw,2.5rem);margin:.2rem 0 .5rem}h2{font-size:1.1rem;margin-top:0}p{line-height:1.55}.eyebrow{color:var(--accent);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.75rem}.muted{color:var(--muted)}.notice{border:1px solid #80683f;background:#30291e;color:#ffe5b7;border-radius:12px;padding:1rem;margin:1rem 0}.layout{display:grid;grid-template-columns:minmax(260px,.85fr) minmax(0,1.4fr);gap:1rem}.panel,.metric{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem}.fields{display:grid;gap:.8rem}label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:.35rem}select,input{width:100%;border:1px solid var(--line);border-radius:8px;background:#101a1e;color:inherit;padding:.7rem;font:inherit}button{border:0;border-radius:9px;padding:.8rem 1rem;background:var(--accent);color:#12231d;font-weight:750;font:inherit;cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #fff;outline-offset:2px}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem;margin-bottom:1rem}.metric .label{color:var(--muted);font-size:.8rem}.metric .value{font-size:clamp(1.1rem,3vw,1.65rem);font-weight:750;margin-top:.4rem;overflow-wrap:anywhere}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.9rem}th,td{text-align:left;padding:.7rem;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600}.bar{height:7px;background:#2d4448;border-radius:9px;overflow:hidden;margin-top:.35rem}.bar span{display:block;height:100%;background:var(--accent)}.error{color:#ffb6b6;min-height:1.5rem}.sources li{margin:.65rem 0;line-height:1.45}a{color:var(--accent);overflow-wrap:anywhere}.small{font-size:.82rem}.pill{display:inline-block;border:1px solid var(--line);padding:.2rem .5rem;border-radius:999px;font-size:.75rem;color:var(--muted)}footer{max-width:1100px;padding:1rem;margin:auto;color:var(--muted);font-size:.8rem}@media(max-width:760px){.layout{grid-template-columns:1fr}.metrics{grid-template-columns:1fr}.metric{padding:.8rem}}
+</style>
+</head>
+<body>
+<header>
+<div class="eyebrow">Laboratoire de recherche · finance computationnelle</div>
+<h1>Climate Finance Research Lab</h1>
+<p class="muted">Explorer des sensibilités de portefeuille à des scénarios climatiques, avec hypothèses visibles et calculs reproductibles.</p>
+<span class="pill">MVP local · sans dépendance externe</span>
+</header>
+<main>
+<div class="notice"><strong>Limite scientifique importante.</strong> Les coefficients actuels sont des paramètres pédagogiques fictifs, pas des données NGFS, des prévisions ni des estimations réglementaires. Les résultats servent à tester la chaîne de calcul, pas à décider d’un investissement.</div>
+<div class="layout">
+<section class="panel">
+<h2>Paramètres de simulation</h2>
+<form id="sim-form" class="fields">
+<div><label for="scenario">Scénario illustratif</label><select id="scenario"><option value="orderly_transition">Transition ordonnée</option><option value="disorderly_transition">Transition désordonnée</option><option value="hot_house_world">Monde à fortes émissions</option></select></div>
+<div><label for="horizon">Horizon de sensibilité</label><select id="horizon"><option value="1">1 an</option><option value="5">5 ans</option><option value="10" selected>10 ans</option><option value="20">20 ans</option><option value="30">30 ans</option></select></div>
+<p class="small muted">Portefeuille pédagogique. Les montants sont dans une unité monétaire choisie par l’utilisateur; aucune devise n’est présumée.</p>
+<div><label for="energy">Énergie — exposition</label><input id="energy" type="number" min="0" max="1000000000000" step="1000" value="100000" required></div>
+<div><label for="energy-intensity">Énergie — facteur d’intensité (0–2)</label><input id="energy-intensity" type="number" min="0" max="2" step=".1" value="0.8" required></div>
+<div><label for="real-estate">Immobilier — exposition</label><input id="real-estate" type="number" min="0" max="1000000000000" step="1000" value="75000" required></div>
+<div><label for="real-estate-intensity">Immobilier — facteur d’intensité (0–2)</label><input id="real-estate-intensity" type="number" min="0" max="2" step=".1" value="0.3" required></div>
+<div><label for="technology">Technologie — exposition</label><input id="technology" type="number" min="0" max="1000000000000" step="1000" value="50000" required></div>
+<div><label for="technology-intensity">Technologie — facteur d’intensité (0–2)</label><input id="technology-intensity" type="number" min="0" max="2" step=".1" value="0.1" required></div>
+<button type="submit">Exécuter la simulation</button>
+<div id="error" class="error" role="alert" aria-live="polite"></div>
+</form>
+</section>
+<section>
+<div class="metrics" aria-live="polite">
+<div class="metric"><div class="label">Exposition totale</div><div id="total" class="value">—</div></div>
+<div class="metric"><div class="label">Perte estimée (jouet)</div><div id="loss" class="value">—</div></div>
+<div class="metric"><div class="label">Perte / exposition</div><div id="loss-pct" class="value">—</div></div>
+</div>
+<div class="panel">
+<h2 id="result-title">Résultats par secteur</h2>
+<p id="method" class="muted small">Lancez une simulation pour afficher les résultats.</p>
+<div class="table-wrap"><table><thead><tr><th>Secteur</th><th>Exposition</th><th>Perte estimée</th><th>Taux de perte</th></tr></thead><tbody id="results"><tr><td colspan="4">En attente d’une simulation.</td></tr></tbody></table></div>
+<h2 style="margin-top:1.4rem">Décomposition des hypothèses</h2>
+<p class="small muted">Les composants transition et physique sont des paramètres de sensibilité, pas une attribution empirique causale.</p>
+<div id="components" class="small muted">Aucun résultat pour l’instant.</div>
+</div>
+</section>
+</div>
+<section class="panel" style="margin-top:1rem">
+<h2>Sources de données vérifiables pour la prochaine phase</h2>
+<p class="muted small">Les sources ci-dessous sont des portes d’entrée officielles. Cette version ne télécharge pas automatiquement leurs données; aucun chiffre externe n’est injecté silencieusement dans les simulations.</p>
+<ul class="sources" id="sources-list"><li>Chargement du catalogue centralisé…</li></ul>
+</section>
+<section class="panel" style="margin-top:1rem">
+<h2>Limites à garder dans tout rapport</h2>
+<ul class="small">
+<li>Les scénarios décrivent des futurs conditionnels, pas des prédictions probabilisées.</li>
+<li>Pas de mapping des émetteurs, localisation des actifs, défauts, prix de marché, corrélations ni diversification.</li>
+<li>Les paramètres d’intensité saisis sont unitless et pédagogiques; ils ne sont pas des métriques vérifiées d’émetteurs.</li>
+<li>La mise à l’échelle linéaire selon l’horizon est une simplification explicite.</li>
+<li>Pour une publication, conserver source, version, date de téléchargement, unités, transformations, configuration et empreinte du code; ajouter analyse de sensibilité, validation hors échantillon et revue indépendante.</li>
+</ul>
+</section>
+</main>
+<footer>Climate Finance Research Lab · calcul déterministe local · aucun conseil financier · aucune donnée de marché temps réel.</footer>
+<script>
+const $ = (id) => document.getElementById(id);
+const number = (value) => new Intl.NumberFormat('fr-FR', {maximumFractionDigits: 2}).format(value);
+const pct = (value) => new Intl.NumberFormat('fr-FR', {maximumFractionDigits: 3}).format(value) + ' %';
+async function runSimulation(event) {
+  event.preventDefault();
+  $('error').textContent = '';
+  const positions = [
+    {sector:'energy', value:Number($('energy').value), emissions_intensity:Number($('energy-intensity').value)},
+    {sector:'real_estate', value:Number($('real-estate').value), emissions_intensity:Number($('real-estate-intensity').value)},
+    {sector:'technology', value:Number($('technology').value), emissions_intensity:Number($('technology-intensity').value)}
+  ];
+  if (positions.some(p => !Number.isFinite(p.value) || p.value < 0 || !Number.isFinite(p.emissions_intensity) || p.emissions_intensity < 0 || p.emissions_intensity > 2)) {
+    $('error').textContent = 'Vérifiez les expositions et les facteurs d’intensité (0 à 2).';
+    return;
+  }
+  try {
+    const response = await fetch('/api/simulate', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scenario:$('scenario').value,horizon_years:Number($('horizon').value),portfolio:positions})});
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Erreur de simulation.');
+    $('total').textContent = number(data.portfolio_value);
+    $('loss').textContent = number(data.estimated_loss);
+    $('loss-pct').textContent = pct(data.estimated_loss_pct);
+    $('result-title').textContent = data.scenario_label + ' · ' + data.horizon_years + ' ans';
+    $('method').textContent = data.method + '. ' + data.limitations.join(' ');
+    $('results').innerHTML = data.positions.map(row => '<tr><td>' + row.sector.replaceAll('_',' ') + '</td><td>' + number(row.exposure) + '</td><td>' + number(row.estimated_loss) + '<div class="bar"><span style="width:' + Math.min(100,row.loss_rate_pct) + '%"></span></div></td><td>' + pct(row.loss_rate_pct) + '</td></tr>').join('');
+    $('components').innerHTML = data.positions.map(row => '<p><strong>' + row.sector.replaceAll('_',' ') + '</strong>: transition ' + pct(row.transition_component_pct) + ' · physique ajusté ' + pct(row.physical_component_pct) + '</p>').join('');
+  } catch (error) {
+    $('error').textContent = error instanceof Error ? error.message : 'Erreur inattendue.';
+  }
+}
+async function loadSourceCatalog() {
+  const list = $('sources-list');
+  try {
+    const response = await fetch('/api/data-sources');
+    if (!response.ok) throw new Error('Catalogue indisponible (' + response.status + ').');
+    const catalog = await response.json();
+    list.replaceChildren();
+    for (const source of catalog.sources || []) {
+      const item = document.createElement('li');
+      const link = document.createElement('a');
+      link.href = source.url;
+      link.rel = 'noreferrer';
+      link.textContent = source.name;
+      item.append(link, document.createTextNode(' — ' + source.intended_use + '. Statut : ' + source.data_status.replaceAll('_', ' ') + '.'));
+      if (Array.isArray(source.checks) && source.checks.length) {
+        const details = document.createElement('details');
+        const summary = document.createElement('summary');
+        summary.textContent = 'Contrôles avant import';
+        const checklist = document.createElement('ul');
+        for (const check of source.checks) {
+          const row = document.createElement('li');
+          row.textContent = check;
+          checklist.append(row);
+        }
+        details.append(summary, checklist);
+        item.append(details);
+      }
+      list.append(item);
+    }
+    if (catalog.status !== 'catalog_only_no_external_data_downloaded') {
+      $('error').textContent = 'Attention : vérifier le statut du catalogue avant d’interpréter les données.';
+    }
+  } catch (error) {
+    list.replaceChildren();
+    const item = document.createElement('li');
+    item.textContent = error instanceof Error ? error.message : 'Erreur de chargement du catalogue.';
+    list.append(item);
+  }
+}
+$('sim-form').addEventListener('submit', runSimulation);
+loadSourceCatalog();
+runSimulation({preventDefault(){}});
+</script>
+</body>
+</html>

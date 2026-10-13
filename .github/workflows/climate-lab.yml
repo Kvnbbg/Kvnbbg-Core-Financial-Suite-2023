@@ -1,0 +1,44 @@
+name: Climate Finance Research Lab
+
+on:
+  push:
+    branches: [main, "feat/climate-finance-research-lab"]
+    paths:
+      - "climate_lab/**"
+      - ".github/workflows/climate-lab.yml"
+  pull_request:
+    paths:
+      - "climate_lab/**"
+      - ".github/workflows/climate-lab.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run deterministic simulation tests
+        working-directory: climate_lab
+        run: python -m unittest discover -s tests -v
+      - name: Smoke-test JSON scenario catalog
+        working-directory: climate_lab
+        run: |
+          python - <<'PY'
+          from server import SCENARIOS, simulate
+          assert len(SCENARIOS) == 3
+          result = simulate({
+              "scenario": "orderly_transition",
+              "horizon_years": 10,
+              "portfolio": [{"sector": "energy", "value": 100, "emissions_intensity": 0.5}],
+          })
+          assert result["portfolio_value"] == 100
+          assert 0 <= result["estimated_loss_pct"] <= 95
+          print("scenario catalog and simulation smoke test: OK")
+          PY
